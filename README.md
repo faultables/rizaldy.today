@@ -7,3 +7,5 @@ WIP as always
 - [ ] RSS (penting)
 - [ ] SEO (why not)
 - [ ] Pagination
+- [ ] Self hosting fonts
+- [ ] SWR cache bunny
