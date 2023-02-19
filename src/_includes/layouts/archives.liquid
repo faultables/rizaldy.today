@@ -1,0 +1,8 @@
+---
+layout: layouts/base
+---
+<div class="l-fragment">
+  {{ content }}
+
+  {% render 'elements/archives', posts: collections.posts, with_meta_info?: true %}
+</div>

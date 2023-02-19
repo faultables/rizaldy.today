@@ -1,0 +1,14 @@
+<!doctype html>
+<html>
+  {% render 'elements/head', title: title %}
+
+  <body>
+    <main class="l-container">
+      {{ content }}
+
+      {% render 'elements/footer', site: site %}
+    </main>
+
+    {% render 'elements/scripts' %}
+  </body>
+</html>

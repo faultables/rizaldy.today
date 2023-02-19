@@ -1,0 +1,24 @@
+<article class="c-article">
+  {%- for post in posts limit: limit reversed -%}
+    <div>
+      <h3>
+        <a class="u-no-underline u-underline--hover" href="{{ post.url }}">{{ post.data.title }}</a>
+      </h3>
+
+      {%- if with_meta_info? -%}
+        <p class="c-article__meta-info">
+          <time>{{ post.date | date: '%b %d, %Y' }}</time> •
+          {% for tag in post.data.tags %}
+            {% unless tag == 'posts' %}
+              <span class="c-article__meta-info-tag"
+                ><a class="u-no-underline u-underline--hover" href="#{{tag}}">{{ tag | upcase }}</a></span
+              >
+            {% endunless %}
+          {% endfor %}
+        </p>
+      {%- endif -%}
+
+      {{ post.content | split: '\n' | first }}
+    </div>
+  {%- endfor -%}
+</article>

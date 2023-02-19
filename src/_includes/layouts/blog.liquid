@@ -1,0 +1,21 @@
+---
+layout: layouts/base
+---
+<div class="l-fragment l-fragment--blog">
+  <div class="c-article">
+    <h1>{{ title }}</h1>
+
+    <p class="c-article__meta-info">
+      <time>{{ date | date: '%b %d, %Y' }}</time> •
+      {% for tag in tags %}
+        {% unless tag == 'posts' %}
+          <span class="c-article__meta-info-tag"
+            ><a class="u-no-underline u-underline--hover" href="#{{tag}}">{{ tag | upcase }}</a></span
+          >
+        {% endunless %}
+      {% endfor %}
+    </p>
+
+    {{ content }}
+  </div>
+</div>

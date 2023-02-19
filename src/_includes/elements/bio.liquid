@@ -1,0 +1,20 @@
+<div class="c-bio u-clearfix">
+  <div class="c-bio__avatar">
+    <img src="{{ site.author.avatar }}" alt="{{ site.author.name }}">
+  </div>
+
+  <div class="c-bio__info">
+    <h2>{{ site.author.name }}</h2>
+    <p>{{ employer.position }}</p>
+
+    <ul>
+      {%- for contact in contacts -%}
+        <li>
+          <a class="u-no-underline u-underline--hover" href="{{ contact.uri }}">
+            {{ contact.name }}: {{ contact.label -}}
+          </a>
+        </li>
+      {%- endfor -%}
+    </ul>
+  </div>
+</div>
