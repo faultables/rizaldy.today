@@ -1,0 +1,14 @@
+{
+  "name": "rizaldy.today",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "eleventy --serve",
+    "build": "eleventy",
+    "test": "echo \"it works\""
+  },
+  "devDependencies": {
+    "@11ty/eleventy": "^2.0.0",
+    "@11ty/eleventy-plugin-syntaxhighlight": "^4.2.0"
+  }
+}
