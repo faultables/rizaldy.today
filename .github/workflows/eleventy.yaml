@@ -11,3 +11,5 @@ jobs:
         run: echo "LAST_COMMIT=`git rev-parse --short HEAD`" >> $GITHUB_ENV
       - name: Build
         uses: TartanLlama/actions-eleventy@master
+        with:
+          install_dependencies: true
