@@ -1,0 +1,13 @@
+name: eleventy
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@master
+      - name: get last sha
+        run: echo "LAST_COMMIT=`git rev-parse --short HEAD`" >> $GITHUB_ENV
+      - name: Build
+        uses: TartanLlama/actions-eleventy@master
