@@ -13,3 +13,12 @@ jobs:
         uses: TartanLlama/actions-eleventy@master
         with:
           install_dependencies: true
+      - name: Deploy
+        uses: ayeressian/bunnycdn-storage-deploy@v1.1.1
+        with:
+          storageEndpoint: "sg.storage.bunnycdn.com"
+          storageZoneName: "${{ secrets.STORAGE_NAME }}"
+          accessKey: "${{ secrets.STORAGE_KEY }}"
+          source: "dist"
+          remove: "true"
+          purge: "false"
