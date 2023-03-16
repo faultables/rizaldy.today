@@ -4,7 +4,7 @@ const siteConfig = {
   last_commit: process.env.LAST_COMMIT || "main",
   author: {
     name: "Rizaldy",
-    avatar: "/assets/img/avatar.jpeg",
+    avatar: "/assets/img/avatar.jpg",
   },
 };
 
