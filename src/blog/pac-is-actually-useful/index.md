@@ -64,7 +64,7 @@ you need to use either one.
 
 And no, using transparent proxies doesn't help.
 
-And then I just came across an old technologiy called [Proxy Auto-Configuration](https://developer.mozilla.org/en-US/docs/Web/HTTP/Proxy_servers_and_tunneling/Proxy_Auto-Configuration_PAC_file)
+And then I just came across an old technology called [Proxy Auto-Configuration](https://developer.mozilla.org/en-US/docs/Web/HTTP/Proxy_servers_and_tunneling/Proxy_Auto-Configuration_PAC_file)
 which is the title of this post. The concept is actually simple: a PAC is just a JavaScript file that calls a `FindProxyForURL` function that returns a single string. The minimal
 script is something like this:
 
@@ -95,7 +95,7 @@ Now, here is the strategy:
 
 Actually I can use `mac-mini` instead of `127.0.0.1` as the hostname so I can use the PAC file everywhere using the same URL.
 
-In every VM I use [`gost`](https://github.com/ginuerzh/gost) as SOCKS5 server. I can create a simple systemd service for it `gost` like this:
+In every VM I use [`gost`](https://github.com/ginuerzh/gost) as SOCKS5 server. I can create a simple systemd service for `gost` like this:
 
 ```js
 systemd.services.gost = {
