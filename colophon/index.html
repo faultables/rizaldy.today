@@ -1,0 +1,82 @@
+<!doctype html>
+<html>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>
+    Colophon
+    - rizaldy.today
+  </title>
+
+  <link rel="me" href="https://edgy.social/@rizaldy">
+
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="preconnect" href="https://api.fontshare.com">
+  <link rel="preconnect" href="https://fonts.bunny.net">
+
+  <link href="https://unpkg.com/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+  <link href="https://api.fontshare.com/v2/css?f[]=clash-display@1&f[]=sentient@1&display=swap" rel="stylesheet">
+  <link href="https://fonts.bunny.net/css?family=jetbrains-mono:400" rel="stylesheet">
+
+  <link href="/assets/css/reset.css" rel="stylesheet">
+  <link href="/assets/css/style.css" rel="stylesheet">
+</head>
+
+
+  <body>
+    <main class="l-container">
+      <div class="l-fragment">
+<h2>Website colophon</h2>
+<p>This page outlines technical details about this website. You can learn more about the purpose and content of the website, as well as the author on the <a href="/">About</a> page.</p>
+<p>This site was built using a boring <a href="https://www.11ty.dev">static site generator</a>, written in a boring <a href="https://daringfireball.net/projects/markdown/">template</a> <a href="https://shopify.github.io/liquid/">language</a> and served by boring <a href="https://min.io">S3 compatible storage</a> behind a boring <a href="https://nginx.org/en/">reverse proxy</a>.</p>
+<p>The three primary fonts I use are:</p>
+<ul>
+<li><a href="https://www.fontshare.com/fonts/sentient">Sentient</a> (serif)</li>
+<li><a href="https://www.fontshare.com/fonts/clash-display">Clash Display</a> (sans-serif)</li>
+<li><a href="https://www.jetbrains.com/lp/mono/">JetBrains Mono</a> (monospace)</li>
+</ul>
+<p>Syntax highlighting is done by the great <a href="https://prismjs.com/">Prism.js</a>, statically generated of course.</p>
+<p>Every request to this site is handled by <a href="https://bunny.net/?ref=2jpxrtyw72">Bunny CDNs</a> exclusively in the APAC region for a reason. Nothing here is dynamic, so, maybe stop scanning <code>config.php</code>, <code>../../etc/passwd</code>, <code>.git</code> or something like that.</p>
+<p>I'm experimenting with <a href="https://www.rfc-editor.org/rfc/rfc5861">stale-while-revalidate</a> in Bunny by keeping track of the latest commit id under this site to maximize the cache-hit ratio, so apologies if you run into any inconsistency issues.</p>
+<p>And please don't <a href="https://portswigger.net/research/practical-web-cache-poisoning">poison the cache</a>, I guess.</p>
+<p>If you enjoy the site, consider to <a href="https://github.com/faultables/rizaldy.today/discussions/new?category=show-and-tell">giving me a word</a> or <a href="https://github.com/sponsors/faultables">some love</a> (my love language is words of affirmation and github sponsors btw).</p>
+<hr>
+<p><em>You may notice that I use <a href="https://u.rizaldy.today">self-hosted</a>, <a href="https://umami.is/">open source privacy-focused web analytics</a>. I respect your <a href="https://www.w3.org/TR/tracking-dnt/">DNT preferences</a> (despite its <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/DNT">depreciation</a>) and it's likely that your uBlock Origin rule is blocking the <code>umami.js</code> just like mine.</em></p>
+<p><em>Otherwise, no personal information is stored unless you treat your user agent as your own unique identity (sorry).</em></p>
+</div>
+
+
+      <footer class="c-footer u-clearfix">
+  <div class="c-footer__copyleft">
+    <p class="u-text-left">
+      &copy; MMXXIII Rizaldy. Any and all opinions listed here are my own and not representative of my
+      employers; future, past and present.
+    </p>
+  </div>
+  <div class="c-footer__links">
+    <ul>
+      <li><a class="u-no-underline u-underline--hover" href="/">About</a></li>
+      <li><a class="u-no-underline u-underline--hover" href="/blog">Writings</a></li>
+      <li><a class="u-no-underline u-underline--hover" href="/colophon">Colophon</a></li>
+      <li>
+        <a class="u-no-underline u-underline--hover" href="https://github.com/faultables/rizaldy.today/commit/a247c1b"
+         >Source Code (a247c1b)</a
+        >
+      </li>
+    </ul>
+  </div>
+</footer>
+
+    </main>
+
+    <script
+  async
+  defer
+  data-website-id="868b4c29-d510-44fb-9404-50c19680d322"
+  data-do-not-track="true"
+  src="https://u.rizaldy.today/umami.js"
+></script>
+
+  </body>
+</html>

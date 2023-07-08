@@ -1,0 +1,155 @@
+<!doctype html>
+<html>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>
+    Expose Web Services at Home via Tailscale for Fun
+    - rizaldy.today
+  </title>
+
+  <link rel="me" href="https://edgy.social/@rizaldy">
+
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="preconnect" href="https://api.fontshare.com">
+  <link rel="preconnect" href="https://fonts.bunny.net">
+
+  <link href="https://unpkg.com/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+  <link href="https://api.fontshare.com/v2/css?f[]=clash-display@1&f[]=sentient@1&display=swap" rel="stylesheet">
+  <link href="https://fonts.bunny.net/css?family=jetbrains-mono:400" rel="stylesheet">
+
+  <link href="/assets/css/reset.css" rel="stylesheet">
+  <link href="/assets/css/style.css" rel="stylesheet">
+</head>
+
+
+  <body>
+    <main class="l-container">
+      <div class="l-fragment l-fragment--blog">
+  <div class="c-article">
+    <h1>Expose Web Services at Home via Tailscale for Fun</h1>
+
+    <p class="c-article__meta-info">
+      <time>Oct 16, 2021</time> •
+      
+        
+      
+        
+          <span class="c-article__meta-info-tag"
+            ><a class="u-no-underline u-underline--hover" href="#tailscale">TAILSCALE</a></span
+          >
+        
+      
+    </p>
+
+    <p>I have a small homelab server at home running TrueNAS Core. My home network sits behind NAT and there are probably 3 routers in front of me.
+On the other hand I also have a small VM that has a static public IP address somewhere in Singapore. Some of my services need to be exposed to the internet for my friends to access—for example—this blog via DNS because remembering a domain address is more fun than a random number with 4 dots.</p>
+<p>The problem is that this blog is running on my NAS and using a private IP address.</p>
+<p>Also, my ISP assigns a public IP Address to my network dynamically. The simplest way to expose my services on my NAS to the Internet might be using Dynamic DNS but sometimes it's not as easy as it sounds.</p>
+<p>So maybe I need to connect one of my VMs in Singapore with my NAS at home. Since it is not possible to connect ethernet cable from NAS to DigitalOcean data center in Singapore, so I have to connect it virtually.</p>
+<p>And yes, by creating a VPN.</p>
+<h2>Tailscale VPN</h2>
+<p>Previously I used <a href="https://wireguard.com">Wireguard</a> with a hub-and-spoke network because managing the keys on each of my machines was quite a chore.</p>
+<p>Then I found out <a href="https://zerotier.com">Zerotier</a> from a random page on Reddit. Zerotier uses a mesh network and it's cute how my machines can talk to each other on a peer-to-peer basis.</p>
+<p>My problem with Zerotier is sometimes the network is somewhat unreliable and maybe it's my poor VM's fault. Also sometimes my machines just randomly can't talk to each other via the Zerotier assigned address and I believe it's a firewall issue.</p>
+<p>So I found out Tailscale from one of my friends on Twitter (actually he is my boss at work). Tailscale is built on Wireguard and is a mesh network. Even though Wireguard has <a href="https://github.com/WireGuard/wg-dynamic">its own</a> mesh network solution, it's still WIP and using <a href="https://github.com/k4yt3x/wg-meshconf">alternative</a> is quite difficult because, again, managing keys is a pain.</p>
+<p>Then I give Tailscale a try. Installing and running Tailscale is easy enough that even my gf (who is non an IT person) can use it without wondering what public/private key means.</p>
+<p>Our devices can talk to each other even though we're on different networks, and that's cool. In most cases, we can communicate peer-to-peer and that's really great.</p>
+<h2>Exposing web services on different private networks</h2>
+<p>We have a secret journal running on my NAS and only accessible over the local network. The domain address is <a href="https://1460.rizaldy.club">1460.rizaldy.club</a> and resolves to a local IP address on the 192.168.1.0/24 subnet so maybe if you access it you will see a random web page (or none at all) rather than our secret journal.</p>
+<p>My gf's private network uses the 10.26.0.0/24 while our journal lives in 192.168.1.242. The key is I use <a href="https://tailscale.com/kb/1019/subnets/">subnet routers</a> and I have Tailscale on my router (and on my device as well) at home. While Tailscale for iOS (and others) has &quot;accept routes&quot; enabled by default, that means our secret journal is directly accessible out of the box because my router advertises the 192.168.1.0/24 subnet and we're on the same tailnet.</p>
+<p><img src="./Untitled-2021-10-16-0110.png" alt="some diagram"></p>
+<p>And that's cool.</p>
+<p>I never even touched Tailscale.app on her phone just to make sure everything was working fine, because it is. We can access it anywhere without having to expose the service to the internet, and that's it the point.</p>
+<h2>Exposing web services on a private network to the Internet</h2>
+<p>I have a minio instance on my NAS and sometimes I upload cat photos there. My minio is accessible at <a href="https://faultables-s3.lan">faultables-s3.lan</a> address and since I'm using <a href="https://tailscale.com/kb/1081/magicdns">Magic DNS</a> too, devices on my tailnet can resolve that domain (thanks to split tunnel) then anyone on my tailnet can see the cat photo I uploaded so maybe I can stop use imgur service as well.</p>
+<p>But I also want my friends to know because my friends are nice and they deserve to see cats. To allow my friend to access it without doing anything, I need a static public IP address and my VM has it. Connecting my VM with my NAS via Tailscale was the answer and that's why you can see <a href="https://s3.edgy.social/0x0/bff5d074d399bdfec6071e9168398406.jpg">this cat</a> right on your screen.</p>
+<p>The setup is pretty simple, I just pointed s3.faultable.dev to my VM's IP, set up <a href="https://caddyserver.com">Caddy Web Server</a> there, and told Caddy to proxy the request to 192.168.1.170:9000.</p>
+<p>Here's another diagram:</p>
+<p><img src="./Untitled-2021-10-15-2135-2048x985.png" alt="I did my best to visualize it"></p>
+<p>Packets between my VM and my router are transmitted in an end-to-end encrypted using the Wireguard protocol so no one can see and/or modify the packets even if no one cares and that's cool.</p>
+<h2>Reverse Proxy as a Service for fun</h2>
+<p>So I just mentioned Tailscale on Twitter about my recent random thoughts:</p>
+<p><img src="./Screen-Shot-2021-10-15-at-9.47.40-PM.png" alt="https://static-tweet.vercel.app/1448966405391405056"></p>
+<p><a href="https://twitter.com/apenwarr/status/1448972965110898693">@apenwarr's</a> answer regarding my thoughts is perfectly understandable: it's not Tailscale's main business (nor focus) so why don't I create one?</p>
+<p>Imagine you don't have to touch any server to just proxy web requests from the public internet to machines in your tailnet. Invite my machine to your tailnet, tell me the address of the domain you own, then tell me where to proxy requests for it.</p>
+<p>In my mind is to setup an OpenResty instance with Redis as a data store, so let's make it official.</p>
+<p>I'll be using a service from Fly.io (because I'm very interested in their service) to deploy OpenResty. For a high-level view of how it works, here's another cool diagram:</p>
+<p><img src="./Untitled-2021-10-16-0110-2.png" alt=""></p>
+<p>Actually I haven't deployed any instances to fly.io when creating this diagram, but if you can see this post it's very likely the diagram above is working.</p>
+<p>Now let's try this out.</p>
+<h2>Minimum Viable RPaaS</h2>
+<p>We'll use openresty/openresty Docker's image as base image because we'll deploy it to fly.io plus we'll bring the Tailscale app on it later.</p>
+<p>We'll be using the <a href="https://hub.docker.com/r/openresty/openresty">openresty/openresty</a> docker image as the base image as we'll be deploying it to fly.io plus we'll be bringing the Tailscale app over later.</p>
+<p>I'll be using a managed Redis solution from <a href="https://upstash.com">Upstash</a> instead of Fly.io and we'll talk about it later. Now let's write the nginx.conf file:</p>
+<pre class="language-nginx"><code class="language-nginx"><span class="token directive"><span class="token keyword">worker_processes</span>  <span class="token number">2</span></span><span class="token punctuation">;</span><br><span class="token directive"><span class="token keyword">error_log</span> logs/error.log info</span><span class="token punctuation">;</span><br><br><span class="token directive"><span class="token keyword">events</span></span> <span class="token punctuation">{</span><br>  <span class="token directive"><span class="token keyword">worker_connections</span> <span class="token number">1024</span></span><span class="token punctuation">;</span><br><span class="token punctuation">}</span><br><br><span class="token directive"><span class="token keyword">env</span> REDIS_HOST</span><span class="token punctuation">;</span><br><span class="token directive"><span class="token keyword">env</span> REDIS_PORT</span><span class="token punctuation">;</span><br><span class="token directive"><span class="token keyword">env</span> REDIS_PASSWORD</span><span class="token punctuation">;</span><br><br><span class="token directive"><span class="token keyword">http</span></span> <span class="token punctuation">{</span><br>  <span class="token directive"><span class="token keyword">server</span></span> <span class="token punctuation">{</span><br>    <span class="token directive"><span class="token keyword">listen</span> <span class="token number">80</span></span><span class="token punctuation">;</span><br><br>    <span class="token directive"><span class="token keyword">location</span> /</span> <span class="token punctuation">{</span><br>      <span class="token directive"><span class="token keyword">set</span> <span class="token variable">$upstream</span> <span class="token string">''</span></span><span class="token punctuation">;</span><br><br>      <span class="token directive"><span class="token keyword">access_by_lua</span> <span class="token string">'<br>        local redis = require "resty.redis"<br>        local redisc = redis:new()<br>        local target = ngx.var.host<br><br>        local redis_host = os.getenv("REDIS_HOST")<br>        local redis_port = os.getenv("REDIS_PORT")<br>        local redis_password = os.getenv("REDIS_PASSWORD")<br><br>        local connect, err = redisc:connect(redis_host, redis_port, {<br>          ssl = true<br>        })<br><br>        if not connect then<br>          ngx.log(ngx.ERR, "failed to connect to redis", err)<br>          return ngx.exit(500)<br>        end<br><br>        local auth, err = redisc:auth(redis_password)<br><br>        if not auth then<br>          ngx.say("failed to authenticate", err)<br>          return ngx.exit(500)<br>        end<br><br>        local get_upstream, err = redisc:get(target)<br><br>        if not get_upstream or get_upstream == ngx.null then<br>          ngx.log(ngx.ERR, "no host found for key", key)<br>          return ngx.exit(404)<br>        end<br><br>        ngx.var.upstream = get_upstream<br>      '</span></span><span class="token punctuation">;</span><br><br>      <span class="token directive"><span class="token keyword">proxy_pass</span> http://<span class="token variable">$upstream</span></span><span class="token punctuation">;</span><br>    <span class="token punctuation">}</span><br>  <span class="token punctuation">}</span><br><span class="token punctuation">}</span></code></pre>
+<p>The configuration above in short is to tell OpenResty to handle the request based on its Host header and forward the request based on the existing values. When the host is not listed in our Redis record, we will return a 404 Not Found page because it is.</p>
+<p>The very simple data we're storing for now is just like this:</p>
+<pre class="language-bash"><code class="language-bash"><span class="token operator">&lt;</span>target_host<span class="token operator">></span>:<span class="token operator">&lt;</span>upstream_ip<span class="token operator">></span>:<span class="token operator">&lt;</span>upstream_port<span class="token operator">></span></code></pre>
+<p>So if I want to handle every incoming request from nginx.init8.lol to 100.73.204.66:42069, the operation is as simple as <code>SET nginx.init8.lol 100.73.204.66:42069</code>.</p>
+<p><a href="./Screen-Shot-2021-10-16-at-4.07.16-AM-2048x1305.png"><img src="./Screen-Shot-2021-10-16-at-4.07.16-AM-2048x1305.png" alt=""></a></p>
+<p>Please keep in mind that since packets are end-to-end encrypted means that target upstream need to be directly to be the Tailscale IP. For example, port forwarding from your WAN to your LAN on your router won't work because packets are encrypted unless you set reverse proxy on your router (and let the proxy do the job).</p>
+<h2>Making it more official</h2>
+<p>Now let's deploy our OpenResty to the fly.io platform. In order to connect Tailscale with Fly.io we can use <a href="https://tailscale.com/kb/1132/flydotio">this guide</a> from Tailscale Docs. Our fly.io instance will only have Tailscale IPv6 so we need to point our domain to use Tailscale IPv6 so fly.io can route traffic to your machine.</p>
+<p>So I'm going to create a frontend for this service so that it can interact with Redis via a REST API. It's still a WIP at the moment (I'm writing this post while creating the service lol) but I wanted to let my internet friends know I'm developing something fun (or at least for me).</p>
+<p>The common setting than this is to set <a href="https://ngrok.io">ngrok.io</a>, tell ngrok.io which port you want to expose then you will get a unique URL. That's pretty cool but what if I'm dogfooding this?
+So I point app.init8.lol to ts-proxy.fly.io, invite the machine to my tailnet, then tell the proxy to point that domain to [fd7a:115c:a1e0:ab12:4843:cd96:6258:9a11]:80 which is my Tailscale IPv6 address on my mac that running Next.js app on tmux.</p>
+<p><img src="./Screen-Shot-2021-10-16-at-5.43.20-AM.png" alt=""></p>
+<p>Go <a href="https://app.init8.lol">visit this</a> to try it out before my mac dies! (dead)</p>
+<h2>What's next?</h2>
+<p>My main point is to destroy my DigitalOcean droplet which only does one thing which is proxying requests. Every time I run new service, I need to SSH into my VM; update <code>Caddyfile</code>, <code>systemctl reload caddy</code>, and so on. Apart from that I need to manage &amp; maintain the server and I'm too lazy for that.</p>
+<p>In future I would like to add some nice functionality like:</p>
+<ul>
+<li>Issuing an SSL certificate from Let's Encrypt. In theory this is possible as long as your domain can complete HTTP-01 challenge.</li>
+<li>GUI access to manage proxies so I don't have to use curl anymore when adding new service</li>
+<li>Hardening the security</li>
+<li>Make it work properly &amp; correctly</li>
+</ul>
+<p>This project is pretty fun and it took me 5-ish hours while I wrote this blog post to create a PoC.</p>
+<p>If you have a web service at home and want to expose it to the public internet via the Fly.io network, mention me on <s>Twitter <a href="https://twitter.com/200GbE">@200GbE</a> (updated)</s> Mastodon <a href="https://edgy.social/@rizaldy">@rizaldy@edgy.social</a> and let's chat.</p>
+<p>You can also check out <a href="https://git.edgy.social/rizaldy/rpaas">this project</a> on this repository to learn more, especially there's something I haven't attached here like the Dockerfile and fly.toml files.</p>
+<h2>Demo (dead)</h2>
+<ul>
+<li><a href="https://nginx.init8.lol">Demo 1</a> (machine with a static public IP address, my devbox)</li>
+<li><a href="https://app.init8.lol">Demo 2</a> (machine with a dynamic public IP address, my laptop)</li>
+<li><a href="https://ts-proxy.fly.dev">Demo 3</a> (fly.io instance for this project)</li>
+</ul>
+
+  </div>
+</div>
+
+
+      <footer class="c-footer u-clearfix">
+  <div class="c-footer__copyleft">
+    <p class="u-text-left">
+      &copy; MMXXIII Rizaldy. Any and all opinions listed here are my own and not representative of my
+      employers; future, past and present.
+    </p>
+  </div>
+  <div class="c-footer__links">
+    <ul>
+      <li><a class="u-no-underline u-underline--hover" href="/">About</a></li>
+      <li><a class="u-no-underline u-underline--hover" href="/blog">Writings</a></li>
+      <li><a class="u-no-underline u-underline--hover" href="/colophon">Colophon</a></li>
+      <li>
+        <a class="u-no-underline u-underline--hover" href="https://github.com/faultables/rizaldy.today/commit/a247c1b"
+         >Source Code (a247c1b)</a
+        >
+      </li>
+    </ul>
+  </div>
+</footer>
+
+    </main>
+
+    <script
+  async
+  defer
+  data-website-id="868b4c29-d510-44fb-9404-50c19680d322"
+  data-do-not-track="true"
+  src="https://u.rizaldy.today/umami.js"
+></script>
+
+  </body>
+</html>

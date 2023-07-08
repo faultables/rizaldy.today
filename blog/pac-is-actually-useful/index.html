@@ -1,0 +1,164 @@
+<!doctype html>
+<html>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>
+    Proxy Auto-Configuration (PAC) is actually useful
+    - rizaldy.today
+  </title>
+
+  <link rel="me" href="https://edgy.social/@rizaldy">
+
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="preconnect" href="https://api.fontshare.com">
+  <link rel="preconnect" href="https://fonts.bunny.net">
+
+  <link href="https://unpkg.com/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+  <link href="https://api.fontshare.com/v2/css?f[]=clash-display@1&f[]=sentient@1&display=swap" rel="stylesheet">
+  <link href="https://fonts.bunny.net/css?family=jetbrains-mono:400" rel="stylesheet">
+
+  <link href="/assets/css/reset.css" rel="stylesheet">
+  <link href="/assets/css/style.css" rel="stylesheet">
+</head>
+
+
+  <body>
+    <main class="l-container">
+      <div class="l-fragment l-fragment--blog">
+  <div class="c-article">
+    <h1>Proxy Auto-Configuration (PAC) is actually useful</h1>
+
+    <p class="c-article__meta-info">
+      <time>Jul 05, 2023</time> •
+      
+        
+      
+        
+          <span class="c-article__meta-info-tag"
+            ><a class="u-no-underline u-underline--hover" href="#tailscale">TAILSCALE</a></span
+          >
+        
+      
+        
+          <span class="c-article__meta-info-tag"
+            ><a class="u-no-underline u-underline--hover" href="#proxy">PROXY</a></span
+          >
+        
+      
+    </p>
+
+    <p>So I just got my new Mac machine last week. It's just a small machine with 8 CPUs and 8 GB of memory. I've been thinking about buying one for a long time and now the time has come!</p>
+<p>I'll be using this tiny PC as my main workstation, but unlike my previous approach of setting up development environments, I now have plans to isolate each existing environment into VMs,
+like, one for private; one for side projects, one for community stuff, and one for work.</p>
+<p>I want to keep this tiny PC as clean as possible.</p>
+<h2>The dumb way to use Tailscale</h2>
+<p>This is the main topic of this post, but I'm doing my best to make this post not feel like a shot tweet. On my laptop I use 4 different identities (accounts) in Tailscale,
+and I used to use Tailscale's <a href="https://tailscale.com/blog/fast-user-switching/">Fast user switching</a> feature which was quite useful. Often I forget to switch back
+to my personal account after I realize I can't SSH into my server at home via its hostname.</p>
+<p>So here's the story: I don't want to &quot;switch&quot; anymore so I don't forget one more time.</p>
+<p>I create every VM I need and use different identities for Tailscale there. The OS is NixOS and I'm using <a href="https://orbstack.dev">OrbStack</a> to provision VMs on my tiny PC.
+When I'm not working from home, I can SSH into the VM with this tiny PC as a jumphost while hoping my internet at home is working fine.</p>
+<h3>First, it was DNS</h3>
+<p>Every <a href="https://tailscale.com/kb/1136/tailnet/">Tailnet</a> has its own <a href="https://tailscale.com/kb/1217/tailnet-name/">unique name</a> with <code>ts.net</code> as root domains. My tiny PC's hostname
+is <code>mac-mini</code> (sounds boring) so I can access it via <code>mac-mini.duck-map.ts.net</code>, and yes, duck-map.ts.net is my <em>real</em> Tailnet name.</p>
+<p>The first problem is that <code>ts.net</code> can only be resolved by the &quot;MagicDNS server&quot; which resides on your own device accessed via <code>100.100.100.100</code>. This means that
+when you try to query names for a machine that is outside your tailnet, you will get a bogus NXDOMAIN — which is good.</p>
+<p>The second problem is that you can't route packets to machines outside your tailnet, of course.</p>
+<p>Maybe I could use <a href="https://tailscale.com/kb/1019/subnets/">Subnet Routers</a> to advertise subnets of the bridge interface used by my VM but that only solves half of the problem (excluding DNS queries).</p>
+<p>And what about the <a href="https://tailscale.com/kb/1103/exit-nodes/">Exit Node</a> option? Of course not the answer.</p>
+<h3>Then, it was routing tables</h3>
+<p>In certain cases I had to access an internal application that was only accessible through Tailscale to troubleshoot (#sysadminlife). I don't use proxies much but when I do my favorite
+is to <code>ssh -D 6669 somewhere</code> and use 127.0.0.1:6669 as SOCKS5 proxy servers.</p>
+<p><img src="./236D9096-4D0A-43A5-9827-6227230FB8FE.jpg" alt="236D9096-4D0A-43A5-9827-6227230FB8FE.jpg"></p>
+<p>From the screenshot above, <code>kudxxx.tailnet-xxxxx12.ts.net</code> is the machine that resides on the tailnet where I work. I can't resolve the name, because, well, I'm using my own personal tailnet.</p>
+<p>Then I can use <code>ssh -D 6669 delman@orb</code> where <code>delman</code> is the name of the VM to the tailnet at work. <code>socks5h</code> indicates that the DNS query is made on SOCKS5 proxy servers.</p>
+<p>If referring to the screenshot above, I think it works.</p>
+<h3>Proxy Auto-Configuration</h3>
+<p>What if I need to access different machines on different tailnets like <code>heavy-rotation.duck-map.ts.net</code> and <code>kudxxx.tailnet-xxxxx12.ts.net</code> at the same time?</p>
+<p>On MacOS (or maybe other OS too) you can only use 1 proxy server on your machine at a time. So <code>ssh -D 6669 delman@orb</code> and <code>ssh -D 4848 heavy-rotation@orb</code> require extra work when
+you need to use either one.</p>
+<p><img src="./AF9155DC-0B3D-4A4C-9F64-7435D6F77738.jpg" alt="./AF9155DC-0B3D-4A4C-9F64-7435D6F77738.jpg"></p>
+<p>And no, using transparent proxies doesn't help.</p>
+<p>And then I just came across an old technology called <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Proxy_servers_and_tunneling/Proxy_Auto-Configuration_PAC_file">Proxy Auto-Configuration</a>
+which is the title of this post. The concept is actually simple: a PAC is just a JavaScript file that calls a <code>FindProxyForURL</code> function that returns a single string. The minimal
+script is something like this:</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">function</span> <span class="token function">FindProxyForURL</span> <span class="token punctuation">(</span><span class="token parameter">url<span class="token punctuation">,</span> host</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>  <span class="token function">alert</span><span class="token punctuation">(</span><span class="token string">'url '</span> <span class="token operator">+</span> url<span class="token punctuation">)</span><br>  <span class="token function">alert</span><span class="token punctuation">(</span><span class="token string">'host '</span> <span class="token operator">+</span> host<span class="token punctuation">)</span><br><br>  <span class="token keyword">return</span> <span class="token string">'DIRECT'</span><br><span class="token punctuation">}</span></code></pre>
+<p>You don't need to save it using <code>.js</code> extensions by the way.</p>
+<p>As far as I know that <code>alert</code> function doesn't work in Safari but it works fine in Firefox and Chrome. This is how it looks when &quot;debugging the PAC&quot; using Firefox:</p>
+<p><img src="./1A5B132F-D2F9-4B1F-9923-434B045CFF60.jpg" alt="./1A5B132F-D2F9-4B1F-9923-434B045CFF60.jpg"></p>
+<p>In many cases, you don't need to do that just to verify if your PAC is working — checking the access.log where you hosted the pac file must be enough.</p>
+<h3>Making it official</h3>
+<p>Now, here is the strategy:</p>
+<ul>
+<li>If I access <code>.duck-map.ts.net</code>, proxy the requests to <code>127.0.0.1:4848</code></li>
+<li>If I access <code>.tailnet-xxxxx12.ts.net</code>, proxy the requests to <code>127.0.0.1:6669</code></li>
+<li>Other than that don't proxy the requests to anywhere</li>
+</ul>
+<p>Actually I can use <code>mac-mini</code> instead of <code>127.0.0.1</code> as the hostname so I can use the PAC file everywhere using the same URL.</p>
+<p>In every VM I use <a href="https://github.com/ginuerzh/gost"><code>gost</code></a> as SOCKS5 server. I can create a simple systemd service for <code>gost</code> like this:</p>
+<pre class="language-js"><code class="language-js">systemd<span class="token punctuation">.</span>services<span class="token punctuation">.</span>gost <span class="token operator">=</span> <span class="token punctuation">{</span><br>  description <span class="token operator">=</span> <span class="token string">"gost"</span><span class="token punctuation">;</span><br><br>  after <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"network.target"</span><span class="token punctuation">]</span><span class="token punctuation">;</span><br>  wantedBy <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"multi-user.target"</span><span class="token punctuation">]</span><span class="token punctuation">;</span><br><br>  serviceConfig <span class="token operator">=</span> <span class="token punctuation">{</span><br>    ExecStart <span class="token operator">=</span> <span class="token string">"${pkgs.gost}/bin/gost -L=:6669"</span><span class="token punctuation">;</span><br>    Restart <span class="token operator">=</span> <span class="token string">"always"</span><span class="token punctuation">;</span><br>    RestartSec <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span><span class="token punctuation">;</span></code></pre>
+<p>And then <code>nixos-rebuild switch</code> as usual, then check:</p>
+<pre class="language-bash"><code class="language-bash">$ systemctl status gost<br><br>● gost.service - gost<br>     Loaded: loaded <span class="token punctuation">(</span>/etc/systemd/system/gost.service<span class="token punctuation">;</span> enabled<span class="token punctuation">;</span> preset: enabled<span class="token punctuation">)</span><br>    Drop-In: /nix/store/rmhm2f4izkfxkpaix0ca2pxnvyswkxfi-system-units/service.d<br>             └─zzz-lxc-service.conf<br>     Active: active <span class="token punctuation">(</span>running<span class="token punctuation">)</span> since Wed <span class="token number">2023</span>-07-05 <span class="token number">15</span>:57:51 WIB<span class="token punctuation">;</span> 8h ago<br>   Main PID: <span class="token number">43857</span> <span class="token punctuation">(</span>gost<span class="token punctuation">)</span><br>         IP: <span class="token number">16</span>.1M in, <span class="token number">15</span>.8M out<br>         IO: 0B read, 0B written<br>      Tasks: <span class="token number">11</span> <span class="token punctuation">(</span>limit: <span class="token number">7106</span><span class="token punctuation">)</span><br>     Memory: <span class="token number">10</span>.5M<br>        CPU: <span class="token number">4</span>.504s<br>     CGroup: /system.slice/gost.service<br>             └─43857 /nix/store/q34c64p4cnxh67yxsqxjpjsgdmg8ilpq-gost-2.11.5/bin/gost <span class="token parameter variable">-L</span><span class="token operator">=</span>:6669</code></pre>
+<p>For the contents of the PAC file, it could be like this:</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">function</span> <span class="token function">FindProxyForURL</span> <span class="token punctuation">(</span><span class="token parameter">url<span class="token punctuation">,</span> host</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>  work <span class="token operator">=</span> <span class="token string">"SOCKS5 mac-mini:6669"</span><br>  community <span class="token operator">=</span> <span class="token string">"SOCKS5 mac-mini:4848"</span><br><br>  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">shExpMatch</span><span class="token punctuation">(</span>host<span class="token punctuation">,</span> <span class="token string">"*.tailnet-xxxxx12.ts.net"</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    <span class="token keyword">return</span> work<br>  <span class="token punctuation">}</span><br><br>  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">shExpMatch</span><span class="token punctuation">(</span>host<span class="token punctuation">,</span> <span class="token string">"*.duck-map.ts.net"</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    <span class="token keyword">return</span> community<br>  <span class="token punctuation">}</span><br><br>  <span class="token keyword">return</span> <span class="token string">"DIRECT"</span><br><span class="token punctuation">}</span></code></pre>
+<p><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Proxy_servers_and_tunneling/Proxy_Auto-Configuration_PAC_file#shexpmatch"><code>shExpMatch</code></a> is a function to check if the string
+matches a specified shell glob expression. When one of the conditions is met, it tells the client <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Proxy_servers_and_tunneling/Proxy_Auto-Configuration_PAC_file#return_value_format">how to connect</a> to the target.</p>
+<p><a href="./F89B89ED-50B6-4A0C-B6C2-078BFE35CCE6.jpg"><img src="./F89B89ED-50B6-4A0C-B6C2-078BFE35CCE6.jpg" alt="./F89B89ED-50B6-4A0C-B6C2-078BFE35CCE6.jpg"></a></p>
+<p><small><center><em>*click image above to enlarge*</em></center></small></p>
+<p>As you may see I can access <code>*.duck-map.ts.net</code> and <code>*.tailnet-xxxxx12.ts.net</code> at the same time without switching accounts. If you check <code>(1)</code> and <code>(2)</code> in the screenshot above, the value in &quot;remote address&quot; is where the proxy server is running.</p>
+<h3>But why not share nodes?</h3>
+<p>I can <a href="https://tailscale.com/kb/1084/sharing/">share</a> my <code>mac-mini</code> devices to every tailnet I want, but why not? I don't know, maybe the answer is the same as why I installed and used a different account on Tailscale, in different VMs.</p>
+<p>Also, &quot;shared devices&quot; are <em>quarantined</em> by default. Which means my <code>mac-mini</code> can't initiate connections to devices on the &quot;shared network&quot; until they talk to it first — although it's not a big deal.</p>
+<h3>Why not Tailscale Funnel?</h3>
+<p>It's a different story. Tailscale Funnel is all about exposing devices to the <em>wider</em> internet. This means that even anyone with no Tailscale installed can access
+(usually a web service) via the boring HTTPS protocol. No MagicDNS. No CGNAT IPs. Just the internet we are used to.</p>
+<h2>Conclusion</h2>
+<p>There is no way to verify the integrity of the PAC file especially if you load it via a remote address using an insecure procotol. Which means MiTM attacks are by no means impossible. Maybe someone
+is snooping on your network especially if you are on a public network that uses a captive portal. There's nothing to stop anyone from modifying a PAC file if <em>they</em> want and can.</p>
+<p>But it's worth noting that almost all traffic in 2023 uses end-to-end encryption via HTTPS protocols. If you're installing a &quot;CA certificate&quot; because someone out of nowhere
+asked you to do so, don't do it. If it's too late, maybe consider stopping receiving candy from random people at the bar as well, if that happens to you.</p>
+<p>A simple <code>python -m http.server</code> or <code>caddy:alpine</code> web server can help serve your PAC files on the machine you control. And since you're in control, you probably already have Tailscale installed on the device and can
+use a secure transport (such as Wireguard protocols) to load the PAC file.</p>
+<p>The Proxy Auto-Configuration was <a href="https://developer.mozilla.org/en-US/docs/web/http/proxy_servers_and_tunneling/proxy_auto-configuration_pac_file#history_and_implementation">introduced</a> into Netscape Navigator 2.0 in the late 1990s
+at the same time when JavaScript was introduced. For years I have wondered why my machine has &quot;Automatic proxy configuration&quot; options and why I would ever need it.</p>
+<p>And now I know.</p>
+
+  </div>
+</div>
+
+
+      <footer class="c-footer u-clearfix">
+  <div class="c-footer__copyleft">
+    <p class="u-text-left">
+      &copy; MMXXIII Rizaldy. Any and all opinions listed here are my own and not representative of my
+      employers; future, past and present.
+    </p>
+  </div>
+  <div class="c-footer__links">
+    <ul>
+      <li><a class="u-no-underline u-underline--hover" href="/">About</a></li>
+      <li><a class="u-no-underline u-underline--hover" href="/blog">Writings</a></li>
+      <li><a class="u-no-underline u-underline--hover" href="/colophon">Colophon</a></li>
+      <li>
+        <a class="u-no-underline u-underline--hover" href="https://github.com/faultables/rizaldy.today/commit/a247c1b"
+         >Source Code (a247c1b)</a
+        >
+      </li>
+    </ul>
+  </div>
+</footer>
+
+    </main>
+
+    <script
+  async
+  defer
+  data-website-id="868b4c29-d510-44fb-9404-50c19680d322"
+  data-do-not-track="true"
+  src="https://u.rizaldy.today/umami.js"
+></script>
+
+  </body>
+</html>
