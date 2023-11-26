@@ -5,7 +5,7 @@ const CONSULTING_STATUS = {
 
 const consulting = {
   status: CONSULTING_STATUS.UNAVAILABLE,
-  clear_status_after: 1704091020000,
+  clear_status_after: 1704091020,
   timezone: "UTC+7",
   hours_per_week: 25,
 };
